@@ -77,7 +77,9 @@ def main():
 	if os.path.exists('../out/%s'%img_name):
 		shutil.rmtree('../out/%s'%img_name)
 		os.mkdir('../out/%s'%img_name)
-	
+	else: 
+		os.mkdir('../out/%s'%img_name)
+
 	# iterate over all segmented words
 	print('Segmented into %d words'%len(res))
 	for (j, w) in enumerate(res):
