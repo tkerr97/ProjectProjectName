@@ -6,7 +6,7 @@ import QtQuick.Controls.Material 2.12
 ApplicationWindow {
     visible: true
     title: "PyScribe"
-    height: 600
+    height: 625
     width: 800
 
     Material.theme: Material.Dark
@@ -15,7 +15,7 @@ ApplicationWindow {
       id: dialog
       visible: false
       title: "Choose your image(s)"
-      //nameFilters: [ "Image files (*.jpg, *.png, *.jpeg)" ]
+      nameFilters: [ "Image files (*.jpg, *.png, *.jpeg)" ]
       onAccepted: {
         MainWindow.selectFile(dialog.fileUrls)
       }
@@ -26,38 +26,58 @@ ApplicationWindow {
       title: "Select your model file"
       nameFilters: [ "JSON files (*.json)" ]
       onAccepted: {
-        //MainWindow.selectModel(modelDialog.fileUrls)
+        MainWindow.selectModel(modelDialog.fileUrls)
       }
     }
-    Pane {
+    Column {
       anchors {
-        horizontalCenter: parent.horizontalCenter
-        topMargin: 20
+          horizontalCenter: parent.horizontalCenter
       }
-      height: 525
-      width: 700
-      Material.elevation: 6
+      spacing: 5
 
-      Text {
-        id: selectImageText
-        anchors.centerIn: parent
-        text: qsTr("Please select an image")
-        color: Material.color(Material.Grey)
-        font.pointSize: 24
-      }
-      Image {
-        anchors.centerIn: parent
+      Pane {
+        anchors {
+          horizontalCenter: parent.horizontalCenter
+          topMargin: 20
+        }
         height: 525
         width: 700
-        id: selectedImage
-        visible: false
-        objectName: "imagePreview"
+        Material.elevation: 6
 
-        onStatusChanged: {
-          if (selectedImage.status == Image.Ready) {
-            selectImageText.visible = true
-            selectedImage.visible = true
+        Text {
+          id: selectImageText
+          anchors.centerIn: parent
+          text: qsTr("Please select an image")
+          color: Material.color(Material.Grey)
+          font.pointSize: 24
+        }
+        Image {
+          anchors.centerIn: parent
+          height: 525
+          width: 700
+          id: selectedImage
+          visible: false
+          objectName: "imagePreview"
+
+          onStatusChanged: {
+            if (selectedImage.status == Image.Ready) {
+              selectImageText.visible = true
+              selectedImage.visible = true
+            }
           }
+        }
+      }
+      Pane {
+        anchors {
+          horizontalCenter: parent.horizontalCenter
+        }
+        Material.elevation: 4
+        Text {
+          text: "Please select a model"
+          objectName: "modelPreview"
+          anchors.centerIn: parent
+          color: Material.color(Material.Grey)
+          font.pointSize: 14
         }
       }
     }
@@ -67,7 +87,7 @@ ApplicationWindow {
           bottom: parent.bottom
           horizontalCenter: parent.horizontalCenter
         }
-        spacing: 5
+        spacing: 10
 
         Button {
           text: qsTr("Load Image")
@@ -88,4 +108,5 @@ ApplicationWindow {
           text: "Save"
         }
     }
+
 }

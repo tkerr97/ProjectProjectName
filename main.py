@@ -29,14 +29,18 @@ class MainWindow(QQmlApplicationEngine):
 
         if self.rootObjects():
             self.window = self.rootObjects()[0]
-            self.image = self.window.findChild(QObject, "imagePreview")
+            self.imageField = self.window.findChild(QObject, "imagePreview")
+            self.modelText = self.window.findChild(QObject, "modelPreview")
         else:
             sys.exit(-1)
 
     @Slot(str)
     def selectFile(self, file):
-        self.image.setProperty("source", QUrl.fromLocalFile(file[len("file://"):]))
+        self.imageField.setProperty("source", QUrl.fromLocalFile(file[len("file://"):]))
 
+    @Slot(str)
+    def selectModel(self, model):
+        self.modelText.setProperty("text", model.split("/")[-1])
 
 
 if __name__ == "__main__":
