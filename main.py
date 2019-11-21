@@ -1,17 +1,47 @@
-import tkinter as tk
-import tkinter.filedialog
+import os
+import sys
 
-window = tk.Tk()
+from PySide2.QtCore import QUrl, QObject, Slot, Property, Signal, QtFatalMsg, QtCriticalMsg, QtWarningMsg, QtInfoMsg, \
+    qInstallMessageHandler
+from PySide2.QtGui import QGuiApplication
+from PySide2.QtQml import QQmlApplicationEngine
 
-def loadFile():
-    filename = tk.filedialog.askopenfilename()
-    f = open(filename, 'r+')
-    image = f.read()
-    f.close()
+def qt_message_handler(mode, context, message):
+    if mode == QtInfoMsg:
+        mode = 'Info'
+    elif mode == QtWarningMsg:
+        mode = 'Warning'
+    elif mode == QtCriticalMsg:
+        mode = 'critical'
+    elif mode == QtFatalMsg:
+        mode = 'fatal'
+    else:
+        mode = 'Debug'
+    print("%s: %s (%s:%d, %s)" % (mode, message, context.file, context.line, context.file))
 
 
-window.title('PyScribe')
-button = tk.Button(window, text='Load Image', command=loadFile).pack()
-button = tk.Button(window, text='Load Model', command=loadFile).pack()
+class MainWindow(QQmlApplicationEngine):
+    def __init__(self):
+        super().__init__()
+        self.load(os.path.join(os.getcwd(), "view.qml"))
+        qInstallMessageHandler(qt_message_handler)
+        self.rootContext().setContextProperty("MainWindow", self)
 
-window.mainloop()
+        if self.rootObjects():
+            self.window = self.rootObjects()[0]
+            self.image = self.window.findChild(QObject, "imagePreview")
+        else:
+            sys.exit(-1)
+
+    @Slot(str)
+    def selectFile(self, file):
+        self.image.setProperty("source", QUrl.fromLocalFile(file[len("file://"):]))
+
+
+
+if __name__ == "__main__":
+    os.environ["QT_QUICK_CONTROLS_STYLE"] = "Material"
+
+    app = QGuiApplication(sys.argv)
+    window = MainWindow()
+    sys.exit(app.exec_())
