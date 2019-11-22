@@ -24,7 +24,7 @@ ApplicationWindow {
       id: modelDialog
       visible: false
       title: "Select your model file"
-      nameFilters: [ "JSON files (*.json)" ]
+      nameFilters: [ "Model files (*.h5, *.pb, *.pbtxt)" ]
       onAccepted: {
         MainWindow.selectModel(modelDialog.fileUrls)
       }
@@ -103,9 +103,29 @@ ApplicationWindow {
         }
         Button {
           text: "Transcribe"
+          onClicked: MainWindow.runModel
         }
         Button {
           text: "Save"
+        }
+        Button {
+          text: "Options"
+          id: optionsButton
+          onClicked: optionsMenu.open()
+
+          Menu {
+            id: optionsMenu
+            y: optionsButton.height
+
+            MenuItem {
+              text: "Colored Image"
+              onTriggered: MainWindow.showColor()
+            }
+            MenuItem {
+              text: "BW Image"
+              onTriggered: MainWindow.showBW()
+            }
+          }
         }
     }
 
