@@ -1,6 +1,41 @@
 import cv2
 import os
 import numpy as np
+import shutil
+
+from WordSegmentation import wordSegmentation, prepareImg
+
+def word_segment(img_name):
+	# separate document image into word images
+	print('Segmenting words of sample %s'%img_name)
+
+	# read image, prepare it by resizing it to fixed height and converting it to grayscale
+	img = prepareImg(cv2.imread(img_name), 50)
+
+	# execute segmentation with given parameters
+	# -kernelSize: size of filter kernel (odd integer)
+	# -sigma: standard deviation of Gaussian function used for filter kernel
+	# -theta: approximated width/height ratio of words, filter function is distorted by this factor
+	# - minArea: ignore word candidates smaller than specified area
+	res = wordSegmentation(img, kernelSize=25, sigma=11, theta=7, minArea=100)
+
+	# write output to 'out/inputFileName' directory
+	if os.path.exists('./%s'%img_name):
+		shutil.rmtree('./%s'%img_name)
+		os.mkdir('./%s'%img_name)
+	else:
+		os.mkdir('./%s'%img_name)
+
+	# iterate over all segmented words
+	print('Segmented into %d words'%len(res))
+	for (j, w) in enumerate(res):
+		(wordBox, wordImg) = w
+		(x, y, w, h) = wordBox
+		cv2.imwrite('./%s/%d/%d.png'%(img_name, j), wordImg, wordImg) # save word
+		cv2.rectangle(img,(x,y),(x+w,y+h),0,1) # draw bounding box in summary image
+
+	# output summary image with bounding boxes around words
+	cv2.imwrite('./%s/summary.png'%img_name, img)
 
 def segment(file_name: str):
     img = cv2.imread(file_name, 0)
@@ -79,7 +114,8 @@ def increase_contrast(img_name: str):
 def main():
     capture(1, 'test_img.png')
     increase_contrast('test_img.png')
-    segment('test_img_processed.png')
+    word_segment('test_img_processed.png')
+    # segment('test_img_processed.png')
 
 if __name__ == '__main__':
     main()
