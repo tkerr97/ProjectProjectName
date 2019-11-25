@@ -45,7 +45,7 @@ class MainWindow(QQmlApplicationEngine):
 
     @Slot(str)
     def selectFile(self, file):
-        self.fileName = file[len("file:///"):]
+        self.fileName = file[len("file://"):]
         self.colorImage = QUrl.fromLocalFile(self.fileName)
         image = cv2.imread(self.fileName, cv2.IMREAD_GRAYSCALE)
         path = Path(self.fileName)
@@ -56,7 +56,7 @@ class MainWindow(QQmlApplicationEngine):
 
     @Slot(str)
     def selectModel(self, model):
-        self.modelFileName = model[len("file:///"):]
+        self.modelFileName = model[len("file://"):]
         modelName = model.split("/")[-1]
         self.modelText.setProperty("text", modelName)
         self.model = tf.saved_model.load(self.modelFileName)
