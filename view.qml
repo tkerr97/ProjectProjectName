@@ -105,8 +105,13 @@ ApplicationWindow {
           text: "Transcribe"
           onClicked: MainWindow.runModel()
         }
+        TextField {
+          id: input
+          placeholderText: "File Name"
+        }
         Button {
           text: "Save"
+          onClicked: MainWindow.saveFile(input.text)
         }
         Button {
           text: "Options"

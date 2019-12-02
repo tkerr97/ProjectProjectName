@@ -102,7 +102,7 @@ class MainWindow(QQmlApplicationEngine):
     def runModel(self):
         self.image = self.increase_contrast(self.image)
         cv2.threshold(self.image, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU, self.image)
-        contours, hier = cv2.findContours(self.image, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
+        contours, heir = cv2.findContours(self.image, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
         contours = sorted(contours, key=lambda ctr: cv2.boundingRect(ctr)[0])
 
         d = 0
@@ -113,7 +113,12 @@ class MainWindow(QQmlApplicationEngine):
             roi = self.image[y:y + h, x:x + w]
             d += 1
             cv2.bitwise_not(roi)
-            # out = gui.model.predict(roi)
+            self.text = self.model.predict(roi)
+
+    @Slot(str)
+    def saveFile(self, filename):
+        with open(filename, 'w') as f:
+            f.write(self.text)
 
 
 if __name__ == "__main__":
