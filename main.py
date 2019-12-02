@@ -36,6 +36,11 @@ class MainWindow(QQmlApplicationEngine):
         qInstallMessageHandler(qt_message_handler)
         self.rootContext().setContextProperty("MainWindow", self)
 
+        if os.name == "nt":
+            self.prefix = "file:///"
+        else:
+            self.prefix = "file://"
+
         if self.rootObjects():
             self.window = self.rootObjects()[0]
             self.imageField = self.window.findChild(QObject, "imagePreview")
@@ -45,18 +50,18 @@ class MainWindow(QQmlApplicationEngine):
 
     @Slot(str)
     def selectFile(self, file):
-        self.fileName = file[len("file://"):]
+        self.fileName = file[len(self.prefix):]
         self.colorImage = QUrl.fromLocalFile(self.fileName)
-        image = cv2.imread(self.fileName, cv2.IMREAD_GRAYSCALE)
+        self.image = cv2.imread(self.fileName, cv2.IMREAD_GRAYSCALE)
         path = Path(self.fileName)
         newFileName = str(path)[:-len(path.suffix)] + "_bw" + path.suffix
-        cv2.imwrite(newFileName, image)
+        cv2.imwrite(newFileName, self.image)
         self.bwImage = QUrl.fromLocalFile(newFileName)
         self.showColor()
 
     @Slot(str)
     def selectModel(self, model):
-        self.modelFileName = model[len("file://"):]
+        self.modelFileName = model[len(self.prefix):]
         modelName = model.split("/")[-1]
         self.modelText.setProperty("text", modelName)
         self.model = tf.saved_model.load(self.modelFileName)

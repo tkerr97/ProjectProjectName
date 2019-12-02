@@ -15,7 +15,7 @@ ApplicationWindow {
       id: dialog
       visible: false
       title: "Choose your image(s)"
-      nameFilters: [ "Image files (*.jpg, *.png, *.jpeg)" ]
+      nameFilters: [ "Image files (*)" ]
       onAccepted: {
         MainWindow.selectFile(dialog.fileUrls)
       }
@@ -24,7 +24,7 @@ ApplicationWindow {
       id: modelDialog
       visible: false
       title: "Select your model file"
-      nameFilters: [ "Model files (*.h5, *.pb, *.pbtxt)" ]
+      selectFolder: true
       onAccepted: {
         MainWindow.selectModel(modelDialog.fileUrls)
       }
@@ -103,7 +103,7 @@ ApplicationWindow {
         }
         Button {
           text: "Transcribe"
-          onClicked: MainWindow.runModel
+          onClicked: MainWindow.runModel()
         }
         Button {
           text: "Save"
