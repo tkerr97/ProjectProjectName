@@ -9,6 +9,7 @@ from PySide2.QtQml import QQmlApplicationEngine
 import tensorflow as tf
 import numpy as np
 import cv2
+from skimage.transform import rescale, resize
 
 
 def qt_message_handler(mode, context, message):
@@ -40,6 +41,15 @@ class MainWindow(QQmlApplicationEngine):
             self.prefix = "file:///"
         else:
             self.prefix = "file://"
+        self.tmp_dir = "tmp"
+        if not os.path.exists("tmp"):
+            os.makedirs("tmp")
+        self.fileName = None
+        self.colorImage = None
+        self.image = None
+        self.bwImage = None
+        self.model = None
+        self.modelFolderName = None
 
         if self.rootObjects():
             self.window = self.rootObjects()[0]
@@ -54,18 +64,25 @@ class MainWindow(QQmlApplicationEngine):
         self.colorImage = QUrl.fromLocalFile(self.fileName)
         self.image = cv2.imread(self.fileName, cv2.IMREAD_GRAYSCALE)
         path = Path(self.fileName)
-        newFileName = str(path)[:-len(path.suffix)] + "_bw" + path.suffix
+        newFileName = self.tmp_dir + "/"+path.name[:-len(path.suffix)] + "_bw" + path.suffix
         cv2.imwrite(newFileName, self.image)
         self.bwImage = QUrl.fromLocalFile(newFileName)
         self.showColor()
 
+    def load_model(self):
+        if os.path.isfile(self.modelFolderName + "/model.json") and os.path.isfile(self.modelFolderName + "/model.h5"):
+            self.model = tf.keras.models.model_from_json(self.modelFolderName + "/model.json")
+            self.model.load_weights(self.modelFolderName + "/model.h5")
+        else:
+            self.model = tf.saved_model.load(self.modelFolderName)
+
+
     @Slot(str)
     def selectModel(self, model):
-        self.modelFileName = model[len(self.prefix):]
+        self.modelFolderName = model[len(self.prefix):]
         modelName = model.split("/")[-1]
         self.modelText.setProperty("text", modelName)
-        self.model = tf.saved_model.load(self.modelFileName)
-        #self.model = tf.saved_model.load("/".join(self.modelFileName.split("/")[:-1]))
+        self.load_model()
 
     @Slot()
     def showColor(self):
@@ -85,7 +102,7 @@ class MainWindow(QQmlApplicationEngine):
         for row in range(img_gray.shape[0]):
             for col in range(img_gray.shape[1]):
                 # print(img_gray[row][col])
-                if (img_gray[row][col] < threshold):
+                if img_gray[row][col] < threshold:
                     img_gray[row][col] = 0
                 else:
                     img_gray[row][col] = 255
@@ -98,6 +115,8 @@ class MainWindow(QQmlApplicationEngine):
 
         return processed_img
 
+    #def scale_to_emnist(self, image):
+
     @Slot()
     def runModel(self):
         self.image = self.increase_contrast(self.image)
@@ -105,15 +124,16 @@ class MainWindow(QQmlApplicationEngine):
         contours, heir = cv2.findContours(self.image, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
         contours = sorted(contours, key=lambda ctr: cv2.boundingRect(ctr)[0])
 
-        d = 0
+        self.text = ""
         for ctr in contours:
             # Get bounding box
             x, y, w, h = cv2.boundingRect(ctr)
-            # Getting ROI
-            roi = self.image[y:y + h, x:x + w]
-            d += 1
-            cv2.bitwise_not(roi)
-            self.text = self.model.predict(roi)
+            # Getting letter
+            letter = self.image[y-10:y + h+10, x-10:x + w+10]
+            cv2.bitwise_not(letter)
+            letter = cv2.resize(letter, dsize=(28,28), interpolation=cv2.INTER_CUBIC)
+            letter = resize(letter, (1, 28, 28, 1))
+            self.text += self.model.predict(letter)
 
     @Slot(str)
     def saveFile(self, filename):
