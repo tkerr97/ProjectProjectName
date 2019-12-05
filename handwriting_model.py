@@ -5,12 +5,12 @@ import tensorflow as tf
 
 # Read in and reshape the images
 images, labels = em('byclass')
-images = images.reshape(images.shape[0], 28, 28,1)
+images = images.reshape(images.shape[0], 28, 28, 1)
 images = np.array(images).astype(np.float32)
 
 # Split the labels and images into train and test
 train_images, test_images, train_labels, test_labels = sk.train_test_split(images, labels, test_size=.25)
-print(images.shape)
+
 # Set up the layers of the model
 model = tf.keras.Sequential([
     tf.keras.layers.Conv2D(64, kernel_size=(1, 1), activation='relu'),
@@ -46,4 +46,6 @@ with open("model.json", "w") as json_file:
     json_file.write(model_json)
 # serialize weights to HDF5
 model.save_weights("model.h5")
+
+tf.saved_model.save(model, 'model')
 print("Saved model to disk")

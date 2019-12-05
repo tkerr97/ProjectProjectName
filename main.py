@@ -127,3 +127,4 @@ if __name__ == "__main__":
     app = QGuiApplication(sys.argv)
     window = MainWindow()
     sys.exit(app.exec_())
+
