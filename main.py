@@ -11,6 +11,8 @@ import numpy as np
 import cv2
 from skimage.transform import rescale, resize
 
+from utils import load_model, increase_contrast, get_letters, get_processed_image, get_char
+
 
 def qt_message_handler(mode, context, message):
     if mode == QtInfoMsg:
@@ -67,14 +69,9 @@ class MainWindow(QQmlApplicationEngine):
         newFileName = self.tmp_dir + "/"+path.name[:-len(path.suffix)] + "_bw" + path.suffix
         cv2.imwrite(newFileName, self.image)
         self.bwImage = QUrl.fromLocalFile(newFileName)
+        self.showProcessImage()
+        self.showContours()
         self.showColor()
-
-    def load_model(self):
-        if os.path.isfile(self.modelFolderName + "/model.json") and os.path.isfile(self.modelFolderName + "/model.h5"):
-            self.model = tf.keras.models.model_from_json(self.modelFolderName + "/model.json")
-            self.model.load_weights(self.modelFolderName + "/model.h5")
-        else:
-            self.model = tf.saved_model.load(self.modelFolderName)
 
 
     @Slot(str)
@@ -82,7 +79,11 @@ class MainWindow(QQmlApplicationEngine):
         self.modelFolderName = model[len(self.prefix):]
         modelName = model.split("/")[-1]
         self.modelText.setProperty("text", modelName)
-        self.load_model()
+        self.model = load_model("model")
+
+    @Slot()
+    def showContour(self):
+        self.imageField.setProperty("source", self.ctrImage)
 
     @Slot()
     def showColor(self):
@@ -92,48 +93,42 @@ class MainWindow(QQmlApplicationEngine):
     def showBW(self):
         self.imageField.setProperty("source", self.bwImage)
 
-    def increase_contrast(self, img):
-        # load image
-        img_gray = img
-
-        # increase contrast
-        threshold = 150
-        img_gray = 255 - img_gray  # invert color
-        for row in range(img_gray.shape[0]):
-            for col in range(img_gray.shape[1]):
-                # print(img_gray[row][col])
-                if img_gray[row][col] < threshold:
-                    img_gray[row][col] = 0
-                else:
-                    img_gray[row][col] = 255
-
-        # img_gray = 255 - img_gray #invert color back
-
-        # increase line width
-        kernel = np.ones((3, 3), np.uint8)
-        processed_img = cv2.erode(img_gray, kernel, iterations=1)
-
-        return processed_img
+    @Slot()
+    def showProcess(self):
+        self.imageField.setProperty("source", self.procImage)
 
     #def scale_to_emnist(self, image):
 
     @Slot()
-    def runModel(self):
-        self.image = self.increase_contrast(self.image)
-        cv2.threshold(self.image, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU, self.image)
-        contours, heir = cv2.findContours(self.image, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
-        contours = sorted(contours, key=lambda ctr: cv2.boundingRect(ctr)[0])
-
-        self.text = ""
+    def showContours(self):
+        image = increase_contrast(self.image)
+        cv2.threshold(image, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU, image)
+        contours, heir = cv2.findContours(image, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
         for ctr in contours:
-            # Get bounding box
             x, y, w, h = cv2.boundingRect(ctr)
-            # Getting letter
-            letter = self.image[y-10:y + h+10, x-10:x + w+10]
-            cv2.bitwise_not(letter)
-            letter = cv2.resize(letter, dsize=(28,28), interpolation=cv2.INTER_CUBIC)
-            letter = resize(letter, (1, 28, 28, 1))
-            self.text += self.model.predict(letter)
+            cv2.rectangle(image, (x,y), (x+w, y+h), (255, 255, 255), 3)
+
+        path = Path(self.fileName)
+        name = self.tmp_dir + "/"+path.name[:-len(path.suffix)] + "_ctr" + path.suffix
+        cv2.imwrite(name, image)
+        self.ctrImage = QUrl.fromLocalFile(name)
+
+    @Slot()
+    def showProcessImage(self):
+        image = increase_contrast(self.image)
+        cv2.threshold(image, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU, image)
+        path = Path(self.fileName)
+        name = self.tmp_dir + "/"+path.name[:-len(path.suffix)] + "_prc" + path.suffix
+        cv2.imwrite(name, image)
+        self.procImage = QUrl.fromLocalFile(name)
+
+
+    @Slot()
+    def runModel(self):
+        self.text = ""
+        letters, _ = get_letters(get_processed_image(self.image))
+        for letter in letters:
+            self.text += get_char(self.model.predict(letter).argmax())
 
     @Slot(str)
     def saveFile(self, filename):

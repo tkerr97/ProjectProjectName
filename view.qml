@@ -130,6 +130,14 @@ ApplicationWindow {
               text: "BW Image"
               onTriggered: MainWindow.showBW()
             }
+            MenuItem {
+              text: "Contour Image"
+              onTriggered: MainWindow.showContour()
+            }
+            MenuItem {
+              text: "Processed Image"
+              onTriggered: MainWindow.showProcess()
+            }
           }
         }
     }

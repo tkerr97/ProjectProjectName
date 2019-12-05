@@ -3,7 +3,7 @@ import sklearn.model_selection as sk
 from emnist import extract_training_samples as em
 import tensorflow as tf
 
-from utils import load_images
+from utils import load_images, enable_cuda, output_model
 
 images, labels = load_images()
 
@@ -27,7 +27,7 @@ model = tf.keras.Sequential([
 ])
 
 # Check that TF is running on the GPU
-sess = tf.compat.v1.Session(config=tf.compat.v1.ConfigProto(log_device_placement=True))
+enable_cuda()
 
 # Train the model
 model.compile(optimizer='adam',
@@ -39,12 +39,7 @@ model.fit(train_images, train_labels, epochs=4)
 test_loss, test_acc = model.evaluate(test_images, test_labels)
 print("Accuracy: ", test_acc)
 
-# Save model to file
-model_json = model.to_json()
-with open("models/model.json", "w") as json_file:
-    json_file.write(model_json)
-# serialize weights to HDF5
-model.save_weights("models/model.h5")
+output_model(model, "model")
 
 tf.saved_model.save(model, 'model')
 print("Saved model to disk")
