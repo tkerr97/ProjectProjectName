@@ -10,10 +10,6 @@ from utils import load_images, output_model, enable_cuda, test_model, load_model
 images, labels = load_images()
 images = images.reshape(images.shape[0], 28, 28, 1)
 
-model =load_model("model1")
-
-print(test_model(model, "hello_world.png", True))
-
 x_train, x_test, y_train, y_test = sk.train_test_split(images, labels, test_size=.15)
 
 model = tf.keras.Sequential()
