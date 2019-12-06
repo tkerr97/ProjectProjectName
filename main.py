@@ -79,7 +79,7 @@ class MainWindow(QQmlApplicationEngine):
         self.modelFolderName = model[len(self.prefix):]
         modelName = model.split("/")[-1]
         self.modelText.setProperty("text", modelName)
-        self.model = load_model("model")
+        self.model = load_model(self.modelFolderName)
 
     @Slot()
     def showContour(self):
@@ -128,7 +128,9 @@ class MainWindow(QQmlApplicationEngine):
         self.text = ""
         letters, _ = get_letters(get_processed_image(self.image))
         for letter in letters:
+
             self.text += get_char(self.model.predict(letter).argmax())
+        print(self.text)
 
     @Slot(str)
     def saveFile(self, filename):

@@ -24,7 +24,6 @@ ApplicationWindow {
       id: modelDialog
       visible: false
       title: "Select your model file"
-      selectFolder: true
       onAccepted: {
         MainWindow.selectModel(modelDialog.fileUrls)
       }
