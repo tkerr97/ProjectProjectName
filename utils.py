@@ -1,7 +1,11 @@
+import json
+import os
+
 from emnist import extract_training_samples as em
 import numpy as np
 import tensorflow as tf
 import cv2
+from skimage.transform import rescale, resize
 
 chars = [
     '0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
@@ -67,12 +71,11 @@ def get_processed_image(image):
     return image
 
 
-def resize_letter(letter, show=False):
+def resize_letter(letter):
     letter = cv2.resize(letter, dsize=(20, 20), interpolation=cv2.INTER_AREA)
     letter = np.pad(letter, [(4,), (4,)], mode='constant')
-    if show:
-        cv2.imshow('letter', letter)
-        cv2.waitKey(0)
+    cv2.imshow('letter', letter)
+    cv2.waitKey(0)
 
     letter = np.asarray(letter).astype(dtype="float32").reshape((1, 28, 28, 1))
     letter /= 255

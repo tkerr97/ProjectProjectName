@@ -12,9 +12,10 @@ for image in images:
     hogs.append(hog(image, pixels_per_cell=(7, 7), cells_per_block=(4, 4)))
 print("Done")
 X_train, X_test, y_train, y_test = sk.train_test_split(hogs, labels, test_size=.15)
+
 pca = PCA(n_components=60)
 X_train = pca.fit_transform(X_train)
-# Transform the data using the PCA fit above
+
 X_test = pca.transform(X_test)
 
 model = svm.SVC()

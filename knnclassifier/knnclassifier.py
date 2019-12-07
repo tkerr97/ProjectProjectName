@@ -15,7 +15,7 @@ print("Done")
 X_train, X_test, y_train, y_test = train_test_split(hogs, labels, test_size=.15)
 
 grid_params = {
-    'n_neighbors': [5, 7, 9],
+    'n_neighbors': [3, 5, 7, 9],
     'weights': ['uniform', 'distance']
 }
 
@@ -24,6 +24,7 @@ search = GridSearchCV(KNeighborsClassifier(), grid_params)
 search.fit(X_train, y_train)
 total = 0
 right = 0
+print(search.best_params_)
 for image, label in zip(X_test, y_test):
     if search.predict(image.reshape(1, -1)) == label:
         right += 1
